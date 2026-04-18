@@ -24,6 +24,7 @@ for d in ['backend', 'backend/models', 'backend/routes', 'backend/services', 'co
 
 from backend.app import app, init_db, check_and_auto_backup
 from config.config import Config
+from backend.models.db import execute_query
 
 LISTEN_HOST = "0.0.0.0"
 LOCAL_PORT_START = 5000
@@ -79,8 +80,13 @@ if __name__ == '__main__':
 
     print("📦 Initializing database...")
     try:
-        init_db()
-        print("✅ Database ready")
+        # Check if database is already initialized
+        row = execute_query("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users'", fetch='one')
+        if row['cnt'] == 0:
+            init_db()
+            print("✅ Database initialized")
+        else:
+            print("✅ Database already initialized")
     except Exception as e:
         print(f"❌ Database error: {e}")
         print("   Run setup.py first: python setup.py")

@@ -55,6 +55,7 @@
         <button class="auth-tab" onclick="switchPanel('login')">Login</button>
         <button class="auth-tab active" onclick="switchPanel('register')">Register</button>
       </div>
+      <form id="register-form">
       <div class="form-group">
         <label class="form-label">Choose a Username</label>
         <input class="form-input" type="text" id="r-username" placeholder="e.g. rahul, priya..." autocomplete="username"/>
@@ -87,7 +88,8 @@
         <label class="form-label">Your Answer <span style="color:var(--text2)">(remember this!)</span></label>
         <input class="form-input" type="text" id="r-answer" placeholder="Answer to the question above"/>
       </div>
-      <button class="auth-submit" id="register-btn">Create Account 🚀</button>
+      <button class="auth-submit" id="register-btn" type="submit">Create Account 🚀</button>
+      </form>
     </div>
 
     <!-- ── PANEL 3: FORGOT PASSWORD — Step 1 (enter username) ── -->
@@ -499,23 +501,39 @@ document.getElementById('login-btn').addEventListener('click', async function(){
 });
 
 // REGISTER
-document.getElementById('register-btn').addEventListener('click', async function(){
+var isSubmitting = false;
+document.getElementById('register-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  registerUser();
+});
+
+async function registerUser(){
+  if (isSubmitting) return;
+  isSubmitting = true;
+  var registerBtn = document.getElementById('register-btn');
   var u=document.getElementById('r-username').value.trim();
   var p=document.getElementById('r-password').value;
   var c=document.getElementById('r-confirm').value;
   var q=document.getElementById('r-question').value;
   var a=document.getElementById('r-answer').value.trim();
-  if(!u||u.length<3){ showAuthError('Username must be at least 3 characters'); return; }
-  if(!p||p.length<4){ showAuthError('Password must be at least 4 characters'); return; }
-  if(p!==c){ showAuthError('Passwords do not match'); return; }
-  if(!q){ showAuthError('Please pick a security question'); return; }
-  if(!a){ showAuthError('Please answer the security question'); return; }
-  this.textContent='Creating...'; this.disabled=true;
-  var res=await API.auth.register(u,p,q,a);
-  this.textContent='Create Account 🚀'; this.disabled=false;
-  if(res.data.success){ toast('Account created! Welcome 🎉','success'); enterApp(u); }
-  else { showAuthError(res.data.error||'Registration failed'); }
-});
+  if(!u||u.length<3){ showAuthError('Username must be at least 3 characters'); isSubmitting=false; return; }
+  if(!p||p.length<4){ showAuthError('Password must be at least 4 characters'); isSubmitting=false; return; }
+  if(p!==c){ showAuthError('Passwords do not match'); isSubmitting=false; return; }
+  if(!q){ showAuthError('Please pick a security question'); isSubmitting=false; return; }
+  if(!a){ showAuthError('Please answer the security question'); isSubmitting=false; return; }
+
+  try {
+    registerBtn.textContent='Creating...';
+    registerBtn.disabled=true;
+    var res=await API.auth.register(u,p,q,a);
+    if(res.data.success){ toast('Account created! Welcome 🎉','success'); enterApp(u); }
+    else { showAuthError(res.data.error||'Registration failed'); }
+  } finally {
+    registerBtn.textContent='Create Account 🚀';
+    registerBtn.disabled=false;
+    isSubmitting=false;
+  }
+}
 
 // FORGOT — Step 1: get security question
 document.getElementById('fp-next-btn').addEventListener('click', async function(){
@@ -554,7 +572,6 @@ document.getElementById('rp-confirm-btn').addEventListener('click', async functi
 
 // Enter key
 ['l-username','l-password'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('login-btn').click();});});
-['r-username','r-password','r-confirm','r-answer'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('register-btn').click();});});
 document.getElementById('fp-username').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('fp-next-btn').click();});
 ['rp-answer','rp-newpass','rp-confirm'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('rp-confirm-btn').click();});});
 

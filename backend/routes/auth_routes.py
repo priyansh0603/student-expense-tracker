@@ -17,8 +17,6 @@ def status():
 
 @auth_bp.route('/register', methods=['POST'])
 def do_register():
-    if not is_first_launch():
-        return jsonify({"success": False, "error": "Account already exists"}), 400
     d = request.get_json()
     result = register(
         d.get('username', ''),

@@ -188,6 +188,13 @@ document.getElementById('fd-confirm').addEventListener('click', async function (
     toast('Enter valid amount', 'error');
     return;
   }
+  
+  console.log("Sending Friend Data:", {
+    name,
+    amount: amt,
+    type: _fdType
+  });
+  
   var res = await API.friends.add({ friend_name: name, amount: amt, type: _fdType, description: desc });
   if (res.data.success) {
     closeDrawer('friend-drawer');

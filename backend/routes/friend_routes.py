@@ -44,7 +44,21 @@ def get_pay():
 def create_friend_transaction():
     auth = require_auth()
     if auth: return auth
+    
+    print("----- FRIEND DEBUG -----")
     data = request.get_json()
+    print("Incoming Data:", data)
+
+    name = data.get("friend_name")
+    amount = data.get("amount")
+    type = data.get("type")
+
+    print("Name:", name)
+    print("Amount:", amount)
+    print("Type:", type)
+
+    user_id = session.get("user_id")
+    print("User ID:", user_id)
 
     if not data.get('friend_name', '').strip():
         return jsonify({"success": False, "error": "Friend name required"}), 400
@@ -53,16 +67,22 @@ def create_friend_transaction():
     if data.get('type') not in ['pay', 'receive']:
         return jsonify({"success": False, "error": "Type must be pay or receive"}), 400
 
-    user_id = session.get('user_id')
-    result = add_friend_transaction(
-        user_id=user_id,
-        friend_name=data['friend_name'].strip(),
-        amount=float(data['amount']),
-        type_=data['type'],
-        description=data.get('description', ''),
-        trans_date=data.get('date')
-    )
-    return jsonify(result), 201
+    if not user_id:
+        return jsonify({"success": False, "error": "User not authenticated"}), 401
+    
+    try:
+        result = add_friend_transaction(
+            user_id=user_id,
+            friend_name=data['friend_name'].strip(),
+            amount=float(data['amount']),
+            type_=data['type'],
+            description=data.get('description', ''),
+            trans_date=data.get('date')
+        )
+        return jsonify(result), 201
+    except Exception as e:
+        print("ERROR:", str(e))
+        return jsonify({"error": str(e)}), 500
 
 @friend_bp.route('/<int:transaction_id>/payment', methods=['POST'])
 def add_payment_route(transaction_id):

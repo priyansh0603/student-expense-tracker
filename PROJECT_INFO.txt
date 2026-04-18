@@ -1,0 +1,675 @@
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                  POCKETTRACK — COMPLETE PROJECT INFORMATION                    ║
+║                  Student Expense Tracker | Full Stack Web App                  ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+Last Updated  : April 2026
+Version       : 1.0
+Developer     : Built for personal student use
+Stack         : Flask (Python) + PostgreSQL + HTML/CSS/Vanilla JS
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 1 — WHAT THIS APP DOES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PocketTrack is a personal expense tracking app designed for students who:
+  → Get fixed monthly pocket money (from father/family)
+  → Want to track how much they spend daily
+  → Need to manage money they owe or will receive from friends
+  → Want to avoid running out of money before the month ends
+  → Want a password-protected local app (not cloud, not shared)
+
+Everything is stored on YOUR laptop in YOUR own PostgreSQL database.
+No internet required after first load. No data leaves your machine.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 2 — TECH STACK (WHY EACH WAS CHOSEN)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  FRONTEND: HTML + CSS + Vanilla JavaScript
+  ──────────────────────────────────────────
+  WHY: No framework needed for this size of app. Loads instantly.
+       Zero dependencies on npm or node_modules.
+       A beginner can read and edit it easily.
+       Fonts: "Syne" (headings) + "DM Sans" (body) from Google Fonts.
+       Design: Dark theme (#0c0c10 background), purple accent (#7c6af7).
+
+  BACKEND: Python with Flask
+  ──────────────────────────
+  WHY: Flask is lightweight and easy to understand.
+       Perfect for a local personal app.
+       No heavy framework overhead.
+       Runs with just: python run.py
+
+  DATABASE: PostgreSQL
+  ─────────────────────
+  WHY: Reliable, structured, supports computed columns (remaining_amount).
+       You manage it via pgAdmin — no need to run SQL files manually.
+       Data stays on your laptop.
+
+  STORAGE: Local Only
+  ────────────────────
+  All data = your laptop PostgreSQL DB.
+  Backups = /backups/ folder as .sql files (via pg_dump).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 3 — PROJECT FOLDER STRUCTURE (EVERY FILE EXPLAINED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+student-expense-tracker/
+│
+├── run.py                        ← START THE APP FROM HERE (python run.py)
+│                                   Initializes DB + starts Flask server
+│                                   Opens at http://localhost:5000
+│
+├── setup.py                      ← First-time setup script
+│                                   Installs Python packages
+│                                   Prompts for DB credentials
+│                                   Writes config/config.py automatically
+│
+├── requirements.txt              ← Python package list
+│                                   Flask, psycopg2-binary, python-dotenv
+│                                   Install via: pip install -r requirements.txt
+│
+├── README.md                     ← Quick start guide in markdown
+│
+│
+├── config/
+│   ├── __init__.py               ← Makes this a Python package (empty file)
+│   └── config.py                 ← ALL YOUR SETTINGS in one place
+│                                   → DB_HOST, DB_PORT, DB_NAME
+│                                   → DB_USER, DB_PASSWORD
+│                                   → SECRET_KEY for Flask sessions
+│                                   → BACKUP_DIR path
+│                                   EDIT THIS FILE with your pgAdmin credentials
+│
+│
+├── database/
+│   └── schema.sql                ← PostgreSQL table definitions
+│                                   NOT auto-run — you run this in pgAdmin
+│                                   Copy-paste into pgAdmin Query Tool → Run
+│                                   Creates: users, transactions,
+│                                            friends, friend_transactions
+│
+│
+├── backend/
+│   ├── __init__.py               ← Makes backend a Python package
+│   │
+│   ├── app.py                    ← Flask app factory
+│   │                               Registers all route blueprints
+│   │                               Serves frontend HTML/CSS/JS files
+│   │                               Triggers auto-backup on 1st of month
+│   │
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── db.py                 ← Database connection layer
+│   │                               get_connection() → opens psycopg2 connection
+│   │                               execute_query()  → runs any SQL query
+│   │                               fetch='one'      → returns single row as dict
+│   │                               fetch='all'      → returns list of dicts
+│   │                               init_db()        → runs schema.sql on startup
+│   │
+│   ├── routes/                   ← URL handlers (Flask blueprints)
+│   │   ├── __init__.py
+│   │   │
+│   │   ├── auth_routes.py        ← All /api/auth/* endpoints
+│   │   │                           GET  /api/auth/status          → is logged in?
+│   │   │                           POST /api/auth/register        → create account
+│   │   │                           POST /api/auth/login           → login
+│   │   │                           POST /api/auth/logout          → logout
+│   │   │                           POST /api/auth/security-question → get question
+│   │   │                           POST /api/auth/reset-password  → reset via answer
+│   │   │                           POST /api/auth/change-password → change (logged in)
+│   │   │
+│   │   ├── transaction_routes.py ← All /api/transactions/* endpoints
+│   │   │                           GET  /api/transactions/dashboard → dashboard data
+│   │   │                           GET  /api/transactions/          → list all tx
+│   │   │                           POST /api/transactions/          → add new tx
+│   │   │                           DEL  /api/transactions/<id>      → delete tx
+│   │   │
+│   │   ├── friend_routes.py      ← All /api/friends/* endpoints
+│   │   │                           GET  /api/friends/receive        → money to receive
+│   │   │                           GET  /api/friends/pay            → money to pay
+│   │   │                           POST /api/friends/               → add entry
+│   │   │                           POST /api/friends/<id>/payment   → partial payment
+│   │   │                           POST /api/friends/<id>/complete  → mark done
+│   │   │                           PUT  /api/friends/<id>           → edit entry
+│   │   │                           DEL  /api/friends/<id>           → delete entry
+│   │   │
+│   │   └── backup_routes.py      ← All /api/backup/* endpoints
+│   │                               GET  /api/backup/                → list backups
+│   │                               POST /api/backup/create          → make backup
+│   │
+│   └── services/                 ← Business logic (pure Python, no Flask)
+│       ├── __init__.py
+│       │
+│       ├── auth_service.py       ← Password + login logic
+│       │                           hash_password()        → SHA-256 with salt
+│       │                           is_first_launch()      → no users in DB?
+│       │                           register()             → create user+security Q
+│       │                           login()                → check username+pass
+│       │                           get_security_question()→ fetch question by username
+│       │                           reset_password()       → verify answer, set new pass
+│       │                           change_password()      → change when logged in
+│       │
+│       ├── transaction_service.py← Income/expense logic
+│       │                           add_transaction()      → insert into transactions
+│       │                           get_transactions()     → fetch by month
+│       │                           get_dashboard_data()   → all calculations:
+│       │                             • total_income  = SUM of all income
+│       │                             • total_expense = SUM of all expenses
+│       │                             • balance       = income - expense
+│       │                             • days_left     = days until month ends
+│       │                             • safe_daily    = balance / days_left
+│       │                             • categories    = breakdown per category
+│       │                             • recent_transactions = last 8 entries
+│       │                             • friend_totals = from friend_service
+│       │                           delete_transaction()   → delete by id
+│       │
+│       ├── friend_service.py     ← Friend money logic
+│       │                           get_or_create_friend() → unique by name (no dups)
+│       │                           add_friend_transaction()→ add pay/receive entry
+│       │                           add_payment()          → partial payment (adds to paid)
+│       │                           mark_completed()       → set paid=total, status=done
+│       │                           get_friend_transactions()→ fetch by type (pay/receive)
+│       │                           get_friend_totals()    → total pending amounts
+│       │                           update_friend_transaction()→ edit total/description
+│       │                           delete_friend_transaction()→ delete by id
+│       │
+│       └── backup_service.py     ← Database backup logic
+│                                   create_backup()        → runs pg_dump command
+│                                   list_backups()         → scans /backups/ folder
+│                                   check_and_auto_backup()→ auto-backup on 1st of month
+│
+│
+├── frontend/
+│   ├── index.html                ← THE ENTIRE UI IN ONE FILE
+│   │                               Contains all 5 pages as hidden/shown divs:
+│   │                               → Auth Screen (Login, Register, Forgot Password)
+│   │                               → Dashboard page
+│   │                               → Receive page
+│   │                               → Pay page
+│   │                               → Add page
+│   │                               → History page
+│   │                               → Settings page
+│   │                               Also contains all drawers (popups from bottom)
+│   │                               All JavaScript at the bottom of the file
+│   │
+│   ├── css/
+│   │   └── style.css             ← ALL STYLES (900+ lines)
+│   │                               CSS Variables for colors/fonts/spacing
+│   │                               Auth screen styles
+│   │                               Dashboard cards, hero banner
+│   │                               Friend cards with progress bars
+│   │                               Bottom navigation bar + FAB button
+│   │                               Slide-up drawers
+│   │                               Toast notification system
+│   │                               All form elements styled
+│   │                               Responsive for mobile screens
+│   │
+│   └── js/
+│       ├── api.js                ← ALL API CALLS in one place
+│       │                           Every fetch() call to Flask backend
+│       │                           Clean function for each endpoint
+│       │                           Returns { ok, status, data } always
+│       │
+│       └── ui.js                 ← SHARED HELPER FUNCTIONS
+│                                   fmt()           → format ₹ amounts
+│                                   fmtDate()       → format dates (15 Apr)
+│                                   monthLabel()    → "April 2026" from "2026-04"
+│                                   getInitials()   → "Rahul" → "R"
+│                                   getCatIcon()    → category → emoji
+│                                   currentMonth    → tracks which month is shown
+│                                   shiftMonth()    → go forward/back one month
+│                                   toast()         → show notification message
+│                                   openDrawer()    → slide up a drawer panel
+│                                   closeDrawer()   → close a drawer panel
+│                                   navigateTo()    → switch between pages
+│                                   spendMsg()      → calculate spending health msg
+│
+│
+├── backups/                      ← WHERE BACKUPS ARE SAVED
+│   └── 2026_04.sql               ← Example: April 2026 backup
+│   └── 2026_05.sql               ← Example: May 2026 backup
+│                                   Created automatically on 1st of each month
+│                                   OR manually via Settings → Create Backup
+│                                   These are full pg_dump SQL files
+│                                   To restore: psql -d your_db < 2026_04.sql
+│
+└── (no node_modules, no package.json — zero JS dependencies)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 4 — POSTGRESQL DATABASE (HOW TO SET UP VIA pgAdmin)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP-BY-STEP (pgAdmin only, no command line needed):
+
+  Step 1: Open pgAdmin
+          → Right-click "Databases" → Create → Database
+          → Name it: student_expense_tracker → Save
+
+  Step 2: Open Query Tool
+          → Click on your new database
+          → Click "Query Tool" icon (or Tools menu → Query Tool)
+
+  Step 3: Run the Schema
+          → Open database/schema.sql in any text editor
+          → Copy ALL the text
+          → Paste into pgAdmin Query Tool
+          → Press F5 (or click the Run/Play button)
+          → You should see "Query returned successfully"
+
+  Step 4: Verify Tables Were Created
+          → In left panel: your DB → Schemas → public → Tables
+          → You should see 4 tables:
+              • users
+              • transactions
+              • friends
+              • friend_transactions
+
+  Step 5: Edit config/config.py
+          → Open student-expense-tracker/config/config.py
+          → Change DB_PASSWORD to your pgAdmin password
+          → Change DB_USER if not "postgres"
+
+  That's it! Tables are ready. Now run: python run.py
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 5 — DATABASE TABLES (EVERY COLUMN EXPLAINED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TABLE 1: users
+──────────────
+  id                   → Auto-incremented number (1, 2, 3...)
+  username             → Your login name (stored lowercase, must be unique)
+                         Example: "rahul"
+  password_hash        → SHA-256 hash of your password (never stored plain)
+                         Example: "a94f3b72c1e8f..." (64-char hex string)
+  security_question    → Question you chose during registration
+                         Example: "What was your first pet's name?"
+  security_answer_hash → SHA-256 hash of your security answer (lowercase)
+                         Used for "Forgot Password" — answer verified by hash
+  created_at           → When the account was created (auto timestamp)
+
+  NOTE: Only 1 row will ever exist — this is a single-user personal app.
+        There is no admin/multi-user setup.
+
+
+TABLE 2: transactions
+─────────────────────
+  id          → Auto number (primary key)
+  type        → Either 'income' or 'expense' — enforced by CHECK constraint
+  amount      → Decimal number, must be > 0  Example: 150.00
+  category    → One of: 'Food', 'Travel', 'Fun', 'Other', 'Income'
+                (Income category used for income type entries)
+  description → Free text — what did you buy / from whom
+                Example: "Burger at McDonald's", "Father sent money"
+  date        → The actual date of the transaction (YYYY-MM-DD)
+                Example: 2026-04-15
+  month       → Derived month string (YYYY-MM) — used for filtering
+                Example: "2026-04"  (April 2026)
+  created_at  → When this row was added to DB (auto timestamp)
+
+
+TABLE 3: friends
+────────────────
+  id         → Auto number (primary key)
+  name       → Friend's name, UNIQUE — no duplicate friends allowed
+               "Rahul" from two different entries = same friend row
+               Matching is case-insensitive in the service layer
+  created_at → When this friend was first added
+
+  WHY SEPARATE TABLE? So "Rahul" always refers to the same person
+  across all entries. No duplication. Clean foreign key relationship.
+
+
+TABLE 4: friend_transactions
+─────────────────────────────
+  id               → Auto number (primary key)
+  friend_id        → Foreign key → friends.id
+                     Links to who this entry is about
+  total_amount     → Full amount of the money deal
+                     Example: ₹500 (Rahul owes you ₹500 for dinner)
+  paid_amount      → How much has been paid/received so far
+                     Starts at 0. Updated via "Add Payment" action.
+                     Example: After 1 partial payment of ₹200 → paid_amount = 200
+  remaining_amount → COMPUTED COLUMN (PostgreSQL calculates it automatically)
+                     Formula: total_amount - paid_amount
+                     Example: 500 - 200 = 300 (₹300 still remaining)
+                     You never set this manually — DB does it
+  type             → 'pay'     = you owe this person money
+                     'receive' = this person owes you money
+  status           → 'pending'   = not fully settled yet
+                     'completed' = remaining_amount is 0 (all settled)
+                     Auto-updated to 'completed' when paid_amount >= total_amount
+  description      → Optional note: "For movie tickets", "Lunch at Taj"
+  date             → Date of the money deal
+  month            → "YYYY-MM" for filtering by month
+  created_at       → Auto timestamp
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 6 — ALL FEATURES EXPLAINED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FEATURE 1: Auth System (Login / Register / Forgot Password)
+────────────────────────────────────────────────────────────
+  REGISTER (first time only):
+    → Enter: username + password + confirm password
+    → Pick a security question from dropdown
+    → Write your answer (remember this for password reset!)
+    → Account created → auto logged in
+    → Password stored as SHA-256 hash (never plain text)
+    → Security answer also stored as hash
+
+  LOGIN:
+    → Enter username + password
+    → Shows/hides password toggle (👁 button)
+    → Wrong password → red error + shake animation
+    → Correct → enters app
+
+  FORGOT PASSWORD (3-step process):
+    Step 1: Click "Forgot password?" link on login screen
+    Step 2: Enter your username → app shows your security question
+    Step 3: Answer the question + enter new password + confirm
+            → Password reset instantly → go back to login
+
+  CHANGE PASSWORD (from Settings when logged in):
+    → Enter current password + new password
+    → Available in Settings page via bottom drawer
+
+
+FEATURE 2: Dashboard
+─────────────────────
+  SAFE DAILY SPEND (main hero element):
+    Formula: balance / days_left_in_month
+    Example: Balance = ₹3000, Days left = 15 → Safe = ₹200/day
+    Color-coded badge:
+      GREEN  = spending is under control
+      YELLOW = getting close to overspending
+      RED    = spending too fast / over budget
+
+  4 STAT BOXES:
+    → Received (total income this month)
+    → Spent    (total expenses this month)
+    → Balance  (income minus expense)
+    → Days Left (until end of current month)
+
+  FRIEND MINI PANEL:
+    → "To Receive" — tap to go to Receive page
+    → "To Pay"     — tap to go to Pay page
+
+  CATEGORY BREAKDOWN:
+    Food / Travel / Fun / Other — how much spent in each
+
+  RECENT TRANSACTIONS:
+    Last 8 entries (income + expenses combined)
+
+  MONTH NAVIGATION:
+    ‹ Previous month   Current month   Next month ›
+    You can view any past month's data
+
+
+FEATURE 3: Add Entry (+ button)
+─────────────────────────────────
+  TAB 1 — EXPENSE:
+    → Amount (required)
+    → Category: Food / Travel / Fun / Other (tap to select)
+    → Description: what did you buy?
+    → Press "Add Expense" or hit Enter key
+    → Takes less than 3 seconds
+
+  TAB 2 — INCOME:
+    → Amount (required)
+    → Note: from whom / why (optional)
+    → Press "Add Income"
+
+  TAB 3 — FRIEND:
+    → Type: "I Need to Pay" OR "I Will Receive"
+    → Friend name (auto-links to existing friend if name matches)
+    → Amount
+    → Description (optional)
+
+
+FEATURE 4: Receive Page (Money friends owe YOU)
+───────────────────────────────────────────────
+  Shows all entries where someone owes you money.
+  Top banner: total pending amount to receive.
+
+  Each friend card shows:
+    → Friend name + avatar initials (e.g. "R" for Rahul)
+    → Date + description
+    → Status badge: PENDING or COMPLETED
+    → Total amount / Received so far / Remaining
+    → Progress bar (visual fill shows % received)
+
+  Actions:
+    → "+ Received" → add partial payment
+    → "✓ Got All"  → mark as fully received (sets status=completed)
+    → "🗑"         → delete entry
+
+  Partial Payment Example:
+    Total = ₹500. Rahul pays ₹200 → click "+ Received" → enter 200
+    → paid_amount becomes 200, remaining becomes 300
+    → Click again later → enter 300 → remaining = 0 → status = completed
+
+
+FEATURE 5: Pay Page (Money YOU owe friends)
+────────────────────────────────────────────
+  Same layout as Receive page, but reversed.
+  Top banner: total you need to pay.
+
+  Actions:
+    → "+ Paid"     → record a payment you made
+    → "✓ Paid All" → mark as fully paid
+    → "🗑"         → delete entry
+
+
+FEATURE 6: History Page
+────────────────────────
+  Full list of all transactions for selected month.
+  Month navigation (‹ ›) to view past months.
+  Each entry shows: icon + description + category + date + amount.
+  ✕ button to delete any entry.
+
+
+FEATURE 7: Settings Page
+─────────────────────────
+  BACKUP:
+    → "Create Backup Now" → runs pg_dump → saves YYYY_MM.sql to /backups/
+    → Shows list of all saved backups with file size + date
+    → Auto-backup: on 1st of every month, last month is auto-backed up
+
+  CHANGE PASSWORD:
+    → Enter current password + new password
+    → Available as a slide-up drawer
+
+  LOCK APP:
+    → Clears your session → takes you back to login screen
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 7 — ALL API ENDPOINTS (Flask Backend)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AUTH (/api/auth/*)
+  GET  /api/auth/status              → { first_launch, authenticated, username }
+  POST /api/auth/register            → { username, password, security_question, security_answer }
+  POST /api/auth/login               → { username, password }
+  POST /api/auth/logout              → clears session
+  POST /api/auth/security-question   → { username } → { question }
+  POST /api/auth/reset-password      → { username, security_answer, new_password }
+  POST /api/auth/change-password     → { old_password, new_password } (session required)
+
+TRANSACTIONS (/api/transactions/*)
+  GET  /api/transactions/dashboard   → ?month=YYYY-MM → full dashboard data
+  GET  /api/transactions/            → ?month=YYYY-MM&limit=N → list of transactions
+  POST /api/transactions/            → { type, amount, category, description, date }
+  DEL  /api/transactions/<id>        → delete transaction by id
+
+FRIENDS (/api/friends/*)
+  GET  /api/friends/receive          → ?month=YYYY-MM → { transactions, total_to_receive }
+  GET  /api/friends/pay              → ?month=YYYY-MM → { transactions, total_to_pay }
+  POST /api/friends/                 → { friend_name, amount, type, description, date }
+  POST /api/friends/<id>/payment     → { amount } → adds to paid_amount
+  POST /api/friends/<id>/complete    → sets paid=total, status=completed
+  PUT  /api/friends/<id>             → { total_amount, description } → edit entry
+  DEL  /api/friends/<id>             → delete friend transaction
+
+BACKUP (/api/backup/*)
+  GET  /api/backup/                  → list of .sql files in /backups/
+  POST /api/backup/create            → { month? } → runs pg_dump → saves file
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 8 — KEY CALCULATIONS (BUSINESS LOGIC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Balance          = SUM(income transactions) - SUM(expense transactions)
+
+  Days Left        = last_day_of_month - today + 1
+                     (0 if month already ended)
+
+  Safe Daily Spend = balance / days_left
+                     (0 if balance <= 0 or days_left = 0)
+
+  Category Total   = SUM(amount) WHERE type='expense' AND category='Food'
+                     (calculated per category separately)
+
+  Friend Remaining = total_amount - paid_amount
+                     (PostgreSQL computed column — auto-calculated)
+
+  Friend Status    = 'completed' if paid_amount >= total_amount
+                     'pending'   otherwise
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 9 — HOW TO RUN THE APP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FIRST TIME SETUP:
+  1. Make sure PostgreSQL is installed and pgAdmin is open
+  2. In pgAdmin: Create database named "student_expense_tracker"
+  3. In pgAdmin Query Tool: Run the contents of database/schema.sql
+  4. Edit config/config.py with your PostgreSQL password
+  5. Open terminal in the project folder
+  6. Run: pip install -r requirements.txt
+  7. Run: python run.py
+  8. Open browser: http://localhost:5000
+  9. Create your account (username + password + security question)
+
+EVERY DAY AFTER:
+  1. Make sure PostgreSQL is running (open pgAdmin if unsure)
+  2. Open terminal in project folder
+  3. Run: python run.py
+  4. Open: http://localhost:5000
+  5. Login with your username + password
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 10 — TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM: "Cannot reach Flask server"
+FIX    : Run python run.py first. Keep the terminal open.
+
+PROBLEM: "Database connection failed"
+FIX    : Make sure PostgreSQL is running. Check pgAdmin is open.
+         Check DB_PASSWORD in config/config.py matches your pgAdmin password.
+
+PROBLEM: "relation users does not exist"
+FIX    : You haven't run schema.sql yet.
+         Open pgAdmin → Query Tool → paste schema.sql → Run.
+
+PROBLEM: "pg_dump not found" on backup
+FIX    : PostgreSQL bin folder not in system PATH.
+         Add C:\Program Files\PostgreSQL\16\bin to your Windows PATH.
+         Or install full PostgreSQL (not just pgAdmin).
+
+PROBLEM: Port 5000 already in use
+FIX    : Change port in run.py: app.run(port=5001)
+         Then open http://localhost:5001
+
+PROBLEM: Forgot password and security answer
+FIX    : Open pgAdmin → Query Tool → run:
+         DELETE FROM users;
+         Then restart the app and create a new account.
+
+PROBLEM: Want to view raw data
+FIX    : Open pgAdmin → your DB → Schemas → public → Tables
+         Right-click any table → View/Edit Data → All Rows
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 11 — SECURITY DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Password hashing  : SHA-256 with salt "pockettrack_salt_2026"
+                      Plain password is NEVER stored anywhere.
+
+  Security answer   : Also hashed the same way.
+                      Answer is stored lowercase before hashing (case-insensitive).
+
+  Sessions          : Flask server-side sessions (cookie-based).
+                      Closing the browser tab does NOT log you out.
+                      Clicking "Lock App" in Settings clears the session.
+
+  Local only        : No internet calls. No external servers.
+                      Your data never leaves your laptop.
+
+  Password reset    : Only possible if you remember your security answer.
+                      No email OTP. No phone number. Fully offline reset.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 12 — BACKUP SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  HOW IT WORKS:
+    → Uses pg_dump (PostgreSQL command line tool) to dump the full database
+    → Saves to /backups/YYYY_MM.sql
+    → Example: backups/2026_04.sql = April 2026 backup
+
+  AUTO BACKUP:
+    → On 1st of every month, the previous month is automatically backed up
+    → Only backs up if that month's file doesn't already exist
+
+  MANUAL BACKUP:
+    → Settings → Create Backup Now
+    → Creates a backup for the current month
+
+  FILE NAMING:
+    2026_04.sql = data from April 2026
+    2026_05.sql = data from May 2026
+
+  TO RESTORE A BACKUP:
+    Open terminal and run:
+    psql -h localhost -U postgres -d student_expense_tracker < backups/2026_04.sql
+
+  WHERE FILES ARE SAVED:
+    Inside your project folder: student-expense-tracker/backups/
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECTION 13 — QUICK REFERENCE: WHAT GOES WHERE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Want to change DB password?        → config/config.py
+  Want to add a new page?            → frontend/index.html (add new .page div)
+  Want to add a new API route?       → backend/routes/*.py
+  Want to add a new DB calculation?  → backend/services/transaction_service.py
+  Want to change colors/fonts?       → frontend/css/style.css (:root variables)
+  Want to see raw DB data?           → pgAdmin → View/Edit Data
+  Want to run SQL manually?          → pgAdmin → Query Tool
+  Want to start the app?             → python run.py
+  Want to create a backup?           → Settings page OR python run.py auto-triggers
+
+══════════════════════════════════════════════════════════════════════════════════
+  END OF PROJECT INFORMATION FILE
+  PocketTrack v1.0 | Built for students | All data stays on your laptop
+══════════════════════════════════════════════════════════════════════════════════

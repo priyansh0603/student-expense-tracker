@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#0c0c10"/>
+<title>PocketTrack — Student Expense Tracker</title>
+<link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     AUTH SCREEN — Login / Register / Reset
+══════════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-glow"></div>
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💰</div>
+      <h1>Pocket<span>Track</span></h1>
+      <p>Your personal money manager</p>
+    </div>
+
+    <!-- Error box -->
+    <div class="auth-error" id="auth-error"></div>
+    <!-- Success box -->
+    <div class="auth-success" id="auth-success"></div>
+
+    <!-- ── PANEL 1: LOGIN ── -->
+    <div class="auth-panel active" id="panel-login">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchPanel('login')">Login</button>
+        <button class="auth-tab" onclick="switchPanel('register')">Register</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" type="text" id="l-username" placeholder="Your username" autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="pass-wrap">
+          <input class="form-input" type="password" id="l-password" placeholder="Your password" autocomplete="current-password"/>
+          <button class="pass-eye" type="button" onclick="toggleEye('l-password',this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-submit" id="login-btn">Unlock App 🔓</button>
+      <div class="auth-link" onclick="switchPanel('forgot')">Forgot password?</div>
+    </div>
+
+    <!-- ── PANEL 2: REGISTER ── -->
+    <div class="auth-panel" id="panel-register">
+      <div class="auth-tabs">
+        <button class="auth-tab" onclick="switchPanel('login')">Login</button>
+        <button class="auth-tab active" onclick="switchPanel('register')">Register</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Choose a Username</label>
+        <input class="form-input" type="text" id="r-username" placeholder="e.g. rahul, priya..." autocomplete="username"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Create Password</label>
+        <div class="pass-wrap">
+          <input class="form-input" type="password" id="r-password" placeholder="Min 4 characters" autocomplete="new-password"/>
+          <button class="pass-eye" type="button" onclick="toggleEye('r-password',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input class="form-input" type="password" id="r-confirm" placeholder="Repeat password"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Security Question <span style="color:var(--accent)">(for password reset)</span></label>
+        <select class="form-select" id="r-question">
+          <option value="">— Pick a question —</option>
+          <option>What is your mother's maiden name?</option>
+          <option>What was the name of your first pet?</option>
+          <option>What city were you born in?</option>
+          <option>What is your favourite food?</option>
+          <option>What was your childhood nickname?</option>
+          <option>What is the name of your best friend?</option>
+          <option>What was your first school name?</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Answer <span style="color:var(--text2)">(remember this!)</span></label>
+        <input class="form-input" type="text" id="r-answer" placeholder="Answer to the question above"/>
+      </div>
+      <button class="auth-submit" id="register-btn">Create Account 🚀</button>
+    </div>
+
+    <!-- ── PANEL 3: FORGOT PASSWORD — Step 1 (enter username) ── -->
+    <div class="auth-panel" id="panel-forgot">
+      <div class="auth-back-row">
+        <button class="auth-back-btn" onclick="switchPanel('login')">← Back to Login</button>
+      </div>
+      <div class="auth-panel-title">Reset Password 🔑</div>
+      <p class="auth-panel-sub">Enter your username and we'll show your security question.</p>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Username</label>
+        <input class="form-input" type="text" id="fp-username" placeholder="Your username"/>
+      </div>
+      <button class="auth-submit" id="fp-next-btn">Next →</button>
+    </div>
+
+    <!-- ── PANEL 4: FORGOT PASSWORD — Step 2 (answer + new pass) ── -->
+    <div class="auth-panel" id="panel-reset">
+      <div class="auth-back-row">
+        <button class="auth-back-btn" onclick="switchPanel('forgot')">← Back</button>
+      </div>
+      <div class="auth-panel-title">Reset Password 🔑</div>
+      <div class="security-q-box" id="reset-question-box">
+        <div class="security-q-label">Your security question:</div>
+        <div class="security-q-text" id="reset-question-text"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Answer</label>
+        <input class="form-input" type="text" id="rp-answer" placeholder="Answer to the question"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <div class="pass-wrap">
+          <input class="form-input" type="password" id="rp-newpass" placeholder="Min 4 characters"/>
+          <button class="pass-eye" type="button" onclick="toggleEye('rp-newpass',this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm New Password</label>
+        <input class="form-input" type="password" id="rp-confirm" placeholder="Repeat new password"/>
+      </div>
+      <button class="auth-submit" id="rp-confirm-btn">Reset Password ✓</button>
+    </div>
+
+  </div><!-- end auth-card -->
+</div><!-- end auth-screen -->
+
+
+<!-- ══════════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════════ -->
+<div id="app" style="display:none">
+<div class="app-wrap">
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="greeting-bar">
+      <div class="greeting-text">
+        <div class="hi">Hey, <span id="greet-name">there</span> 👋</div>
+        <div class="date" id="greet-date"></div>
+      </div>
+      <div class="greeting-avatar" id="greet-avatar" onclick="navigateTo('settings')" title="Settings">P</div>
+    </div>
+    <div class="flex-between mb-8">
+      <div style="font-size:13px;font-weight:600;color:var(--text)">Overview</div>
+      <div class="month-nav-row">
+        <button class="mnr-btn" id="dash-prev">‹</button>
+        <span class="mnr-label" id="dash-month-lbl"></span>
+        <button class="mnr-btn" id="dash-next">›</button>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-label">Safe to spend per day</div>
+      <div class="hero-amount" id="hero-safe">₹0</div>
+      <div class="hero-sub" id="hero-sub">calculating...</div>
+      <span class="hero-badge good" id="hero-badge">Loading...</span>
+    </div>
+    <div class="stats-4">
+      <div class="stat-box"><div class="stat-box-label">Received</div><div class="stat-box-val green" id="d-income">₹0</div></div>
+      <div class="stat-box"><div class="stat-box-label">Spent</div><div class="stat-box-val red" id="d-expense">₹0</div></div>
+      <div class="stat-box"><div class="stat-box-label">Balance</div><div class="stat-box-val purple" id="d-balance">₹0</div></div>
+      <div class="stat-box"><div class="stat-box-label">Days Left</div><div class="stat-box-val orange" id="d-days">—</div></div>
+    </div>
+    <div class="friend-mini">
+      <div class="fm-cell" onclick="navigateTo('receive')">
+        <div class="fm-cell-label">To Receive</div>
+        <div class="fm-cell-val green" id="d-to-receive">₹0</div>
+        <div class="fm-cell-hint">tap to view →</div>
+      </div>
+      <div class="fm-cell" onclick="navigateTo('pay')">
+        <div class="fm-cell-label">To Pay</div>
+        <div class="fm-cell-val red" id="d-to-pay">₹0</div>
+        <div class="fm-cell-hint">tap to view →</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-hd"><div class="section-hd-title">By Category</div></div>
+      <div class="cat-4" id="dash-cats"></div>
+    </div>
+    <div class="card">
+      <div class="section-hd">
+        <div class="section-hd-title">Recent Transactions</div>
+        <div class="section-hd-link" onclick="navigateTo('history')">See all →</div>
+      </div>
+      <div class="tx-list" id="dash-recent"></div>
+    </div>
+  </div>
+
+  <!-- ═══ RECEIVE ═══ -->
+  <div class="page" id="page-receive">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="ph-title">To Receive 💰</div>
+        <div class="ph-sub">Money friends owe you</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openFriendDrawer('receive')">+ Add</button>
+    </div>
+    <div class="total-banner receive">
+      <div><div class="tb-label">Total Pending</div><div class="tb-sublabel">from friends</div></div>
+      <div class="tb-amount" id="recv-total">₹0</div>
+    </div>
+    <div id="recv-list"></div>
+  </div>
+
+  <!-- ═══ PAY ═══ -->
+  <div class="page" id="page-pay">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="ph-title">To Pay 💸</div>
+        <div class="ph-sub">Money you owe friends</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openFriendDrawer('pay')">+ Add</button>
+    </div>
+    <div class="total-banner pay">
+      <div><div class="tb-label">Total Pending</div><div class="tb-sublabel">you need to pay</div></div>
+      <div class="tb-amount" id="pay-total">₹0</div>
+    </div>
+    <div id="pay-list"></div>
+  </div>
+
+  <!-- ═══ ADD ═══ -->
+  <div class="page" id="page-add">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="ph-title">Add Entry ✏️</div>
+        <div class="ph-sub">Quick add in seconds</div>
+      </div>
+    </div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="expense">💸 Expense</button>
+      <button class="mode-tab" data-mode="income">💰 Income</button>
+      <button class="mode-tab" data-mode="friend">🤝 Friend</button>
+    </div>
+
+    <!-- EXPENSE -->
+    <div class="add-block active" id="add-expense">
+      <div class="form-group">
+        <label class="form-label">Amount (₹)</label>
+        <input type="number" class="form-input" id="exp-amt" placeholder="How much did you spend?" inputmode="decimal" min="0"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <div class="cat-picker">
+          <button class="cp-btn active" data-cat="Food"><span class="cp-icon">🍔</span>Food</button>
+          <button class="cp-btn" data-cat="Travel"><span class="cp-icon">🚌</span>Travel</button>
+          <button class="cp-btn" data-cat="Fun"><span class="cp-icon">🎮</span>Fun</button>
+          <button class="cp-btn" data-cat="Other"><span class="cp-icon">📦</span>Other</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">What did you buy?</label>
+        <input type="text" class="form-input" id="exp-desc" placeholder="e.g. Burger, Auto, Coffee..."/>
+      </div>
+      <button class="btn btn-primary btn-full" id="exp-submit">Add Expense</button>
+    </div>
+
+    <!-- INCOME -->
+    <div class="add-block" id="add-income" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Amount Received (₹)</label>
+        <input type="number" class="form-input" id="inc-amt" placeholder="How much did you receive?" inputmode="decimal" min="0"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">From / Note</label>
+        <input type="text" class="form-input" id="inc-desc" placeholder="e.g. Father sent, Freelance work..."/>
+      </div>
+      <button class="btn btn-green btn-full" id="inc-submit">Add Income</button>
+    </div>
+
+    <!-- FRIEND -->
+    <div class="add-block" id="add-friend" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <div class="type-toggle">
+          <button class="tgl-btn active pay" data-ftype="pay">💸 I Need to Pay</button>
+          <button class="tgl-btn" data-ftype="receive">💰 I Will Receive</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Friend Name</label>
+        <input type="text" class="form-input" id="fr-name" placeholder="e.g. Rahul, Priya..." autocomplete="off"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (₹)</label>
+        <input type="number" class="form-input" id="fr-amt" placeholder="0" inputmode="decimal" min="0"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">For (optional)</label>
+        <input type="text" class="form-input" id="fr-desc" placeholder="e.g. Lunch split, Movie tickets..."/>
+      </div>
+      <button class="btn btn-primary btn-full" id="fr-submit">Add Entry</button>
+    </div>
+  </div>
+
+  <!-- ═══ HISTORY ═══ -->
+  <div class="page" id="page-history">
+    <div class="page-header">
+      <div class="page-header-left">
+        <div class="ph-title">History 📋</div>
+        <div class="ph-sub" id="hist-sub"></div>
+      </div>
+      <div class="month-nav-row">
+        <button class="mnr-btn" id="hist-prev">‹</button>
+        <span class="mnr-label" id="hist-month-lbl"></span>
+        <button class="mnr-btn" id="hist-next">›</button>
+      </div>
+    </div>
+    <div class="tx-list" id="hist-list"></div>
+  </div>
+
+  <!-- ═══ SETTINGS ═══ -->
+  <div class="page" id="page-settings">
+    <div class="page-header">
+      <div class="page-header-left"><div class="ph-title">Settings ⚙️</div></div>
+    </div>
+    <div class="card" style="text-align:center;padding:24px 16px;margin-bottom:14px">
+      <div class="greeting-avatar" style="width:56px;height:56px;font-size:22px;margin:0 auto 12px" id="settings-avatar">P</div>
+      <div style="font-family:var(--ff-display);font-size:18px;font-weight:800" id="settings-username">—</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px">PocketTrack Account</div>
+    </div>
+    <div class="settings-section-title">Backup</div>
+    <div class="card">
+      <p class="text-muted mb-8" style="font-size:13px">Monthly SQL backup saved to <code style="color:var(--accent);font-size:12px">/backups/</code> folder on your laptop.</p>
+      <button class="btn btn-primary btn-full" id="backup-btn">💾 Create Backup Now</button>
+      <div class="divider"></div>
+      <div class="section-hd-title">Saved Backups</div>
+      <div id="backup-list" style="margin-top:10px"></div>
+    </div>
+    <div class="settings-section-title">Security</div>
+    <div class="settings-row" onclick="openDrawer('chpass-drawer')">
+      <div class="settings-row-left"><span class="settings-row-icon">🔑</span><span class="settings-row-label">Change Password</span></div>
+      <span class="settings-row-arrow">›</span>
+    </div>
+    <div class="settings-row" id="logout-btn" style="margin-top:4px">
+      <div class="settings-row-left"><span class="settings-row-icon">🚪</span><span class="settings-row-label" style="color:var(--red)">Lock App</span></div>
+      <span class="settings-row-arrow">›</span>
+    </div>
+    <div style="text-align:center;margin-top:32px;color:var(--text3);font-size:12px">PocketTrack v1.0 · Made for students 🎓</div>
+  </div>
+
+</div><!-- end app-wrap -->
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="dashboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Home
+  </button>
+  <button class="nav-btn" data-page="receive">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Receive
+  </button>
+  <button class="nav-fab" id="fab-add">+</button>
+  <button class="nav-btn" data-page="pay">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>Pay
+  </button>
+  <button class="nav-btn" data-page="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
+  </button>
+</nav>
+</div><!-- end #app -->
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+
+<!-- PAYMENT DRAWER -->
+<div class="drawer" id="pay-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title" id="pay-drawer-title">Record Payment</div>
+  <div class="form-group">
+    <label class="form-label">Amount (₹)</label>
+    <input type="number" class="form-input" id="pay-drawer-amt" placeholder="Enter amount" inputmode="decimal" min="0"/>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <button class="btn btn-muted btn-full" onclick="closeDrawer('pay-drawer')">Cancel</button>
+    <button class="btn btn-primary btn-full" id="pay-drawer-confirm">Confirm</button>
+  </div>
+</div>
+
+<!-- FRIEND ADD DRAWER -->
+<div class="drawer" id="friend-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title" id="friend-drawer-title">Add Entry</div>
+  <div class="form-group">
+    <label class="form-label">Friend Name</label>
+    <input type="text" class="form-input" id="fd-name" placeholder="e.g. Rahul, Priya..."/>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Amount (₹)</label>
+    <input type="number" class="form-input" id="fd-amt" placeholder="0" inputmode="decimal" min="0"/>
+  </div>
+  <div class="form-group">
+    <label class="form-label">For (optional)</label>
+    <input type="text" class="form-input" id="fd-desc" placeholder="e.g. Lunch, Movie..."/>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <button class="btn btn-muted btn-full" onclick="closeDrawer('friend-drawer')">Cancel</button>
+    <button class="btn btn-primary btn-full" id="fd-confirm">Add</button>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD DRAWER (from Settings) -->
+<div class="drawer" id="chpass-drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">Change Password 🔑</div>
+  <div class="form-group">
+    <label class="form-label">Current Password</label>
+    <input type="password" class="form-input" id="cp-old" placeholder="Enter current password"/>
+  </div>
+  <div class="form-group">
+    <label class="form-label">New Password</label>
+    <input type="password" class="form-input" id="cp-new" placeholder="Min 4 characters"/>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <button class="btn btn-muted btn-full" onclick="closeDrawer('chpass-drawer')">Cancel</button>
+    <button class="btn btn-primary btn-full" id="cp-confirm">Save</button>
+  </div>
+</div>
+
+<!-- ════ SCRIPTS ════ -->
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script>
+// ══════════════════════════════════
+//  AUTH SCREEN LOGIC
+// ══════════════════════════════════
+var _resetUsername = '';
+
+function switchPanel(name) {
+  document.querySelectorAll('.auth-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('panel-'+name).classList.add('active');
+  hideAuthMsg();
+}
+
+function showAuthError(msg) {
+  var e=document.getElementById('auth-error'); e.textContent=msg; e.classList.add('show');
+  document.getElementById('auth-success').classList.remove('show');
+  document.querySelector('.auth-card').classList.add('shake');
+  setTimeout(function(){ document.querySelector('.auth-card').classList.remove('shake'); }, 500);
+}
+function showAuthSuccess(msg) {
+  var e=document.getElementById('auth-success'); e.textContent=msg; e.classList.add('show');
+  document.getElementById('auth-error').classList.remove('show');
+}
+function hideAuthMsg() {
+  document.getElementById('auth-error').classList.remove('show');
+  document.getElementById('auth-success').classList.remove('show');
+}
+
+function toggleEye(inputId, btn) {
+  var inp = document.getElementById(inputId);
+  if(inp.type==='password'){ inp.type='text'; btn.textContent='🙈'; }
+  else { inp.type='password'; btn.textContent='👁'; }
+}
+
+async function initAuth() {
+  var res = await API.auth.status();
+  if (!res.ok) { showAuthError('Cannot reach Flask server. Run: python run.py'); return; }
+  var d = res.data;
+  if (d.authenticated) { enterApp(d.username); return; }
+  document.getElementById('auth-screen').style.display='flex';
+  if (d.first_launch) {
+    switchPanel('register');
+    document.querySelector('#panel-register .auth-tabs button:first-child').style.display='none';
+    showAuthSuccess('First time! Create your account to get started.');
+  }
+}
+
+function enterApp(username) {
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  var name = username.charAt(0).toUpperCase()+username.slice(1);
+  document.getElementById('greet-name').textContent=name;
+  document.getElementById('greet-avatar').textContent=username.charAt(0).toUpperCase();
+  document.getElementById('settings-avatar').textContent=username.charAt(0).toUpperCase();
+  document.getElementById('settings-username').textContent=name;
+  document.getElementById('greet-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  navigateTo('dashboard');
+}
+
+// LOGIN
+document.getElementById('login-btn').addEventListener('click', async function(){
+  var u=document.getElementById('l-username').value.trim();
+  var p=document.getElementById('l-password').value;
+  if(!u||!p){ showAuthError('Please fill username and password'); return; }
+  this.textContent='Checking...'; this.disabled=true;
+  var res=await API.auth.login(u,p);
+  this.textContent='Unlock App 🔓'; this.disabled=false;
+  if(res.data.success){ enterApp(res.data.username); }
+  else { showAuthError(res.data.error||'Incorrect username or password'); }
+});
+
+// REGISTER
+document.getElementById('register-btn').addEventListener('click', async function(){
+  var u=document.getElementById('r-username').value.trim();
+  var p=document.getElementById('r-password').value;
+  var c=document.getElementById('r-confirm').value;
+  var q=document.getElementById('r-question').value;
+  var a=document.getElementById('r-answer').value.trim();
+  if(!u||u.length<3){ showAuthError('Username must be at least 3 characters'); return; }
+  if(!p||p.length<4){ showAuthError('Password must be at least 4 characters'); return; }
+  if(p!==c){ showAuthError('Passwords do not match'); return; }
+  if(!q){ showAuthError('Please pick a security question'); return; }
+  if(!a){ showAuthError('Please answer the security question'); return; }
+  this.textContent='Creating...'; this.disabled=true;
+  var res=await API.auth.register(u,p,q,a);
+  this.textContent='Create Account 🚀'; this.disabled=false;
+  if(res.data.success){ toast('Account created! Welcome 🎉','success'); enterApp(u); }
+  else { showAuthError(res.data.error||'Registration failed'); }
+});
+
+// FORGOT — Step 1: get security question
+document.getElementById('fp-next-btn').addEventListener('click', async function(){
+  var u=document.getElementById('fp-username').value.trim();
+  if(!u){ showAuthError('Enter your username'); return; }
+  this.textContent='Loading...'; this.disabled=true;
+  var res=await API.auth.getSecurityQuestion(u);
+  this.textContent='Next →'; this.disabled=false;
+  if(res.data.success){
+    _resetUsername=u;
+    document.getElementById('reset-question-text').textContent=res.data.question;
+    document.getElementById('rp-answer').value='';
+    document.getElementById('rp-newpass').value='';
+    document.getElementById('rp-confirm').value='';
+    switchPanel('reset');
+    showAuthSuccess('Answer your security question to reset the password.');
+  } else { showAuthError(res.data.error||'Username not found'); }
+});
+
+// FORGOT — Step 2: verify answer + set new pass
+document.getElementById('rp-confirm-btn').addEventListener('click', async function(){
+  var ans=document.getElementById('rp-answer').value.trim();
+  var np=document.getElementById('rp-newpass').value;
+  var nc=document.getElementById('rp-confirm').value;
+  if(!ans){ showAuthError('Enter your security answer'); return; }
+  if(!np||np.length<4){ showAuthError('New password must be at least 4 characters'); return; }
+  if(np!==nc){ showAuthError('Passwords do not match'); return; }
+  this.textContent='Resetting...'; this.disabled=true;
+  var res=await API.auth.resetPassword(_resetUsername,ans,np);
+  this.textContent='Reset Password ✓'; this.disabled=false;
+  if(res.data.success){
+    showAuthSuccess('Password reset! You can now login.');
+    setTimeout(function(){ switchPanel('login'); },1800);
+  } else { showAuthError(res.data.error||'Incorrect answer'); }
+});
+
+// Enter key
+['l-username','l-password'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('login-btn').click();});});
+['r-username','r-password','r-confirm','r-answer'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('register-btn').click();});});
+document.getElementById('fp-username').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('fp-next-btn').click();});
+['rp-answer','rp-newpass','rp-confirm'].forEach(function(id){document.getElementById(id).addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('rp-confirm-btn').click();});});
+
+// ══════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════
+async function loadDashboard(){
+  var res=await API.transactions.dashboard(currentMonth); if(!res.ok)return;
+  var d=res.data;
+  document.getElementById('dash-month-lbl').textContent=monthLabel(currentMonth);
+  document.getElementById('d-income').textContent=fmt(d.total_income);
+  document.getElementById('d-expense').textContent=fmt(d.total_expense);
+  document.getElementById('d-balance').textContent=fmt(d.balance);
+  document.getElementById('d-balance').className='stat-box-val '+(d.balance>=0?'purple':'red');
+  document.getElementById('d-days').textContent=d.days_left+'d';
+  document.getElementById('hero-safe').textContent=fmt(d.safe_daily_spend);
+  document.getElementById('hero-sub').textContent='for '+d.days_left+' days remaining';
+  var avg=d.days_left>0?d.total_expense/Math.max(1,new Date().getDate()):0;
+  var msg=spendMsg(d.safe_daily_spend,avg);
+  var badge=document.getElementById('hero-badge');
+  badge.textContent=msg.text; badge.className='hero-badge '+msg.cls;
+  if(d.friend_totals){document.getElementById('d-to-receive').textContent=fmt(d.friend_totals.total_to_receive);document.getElementById('d-to-pay').textContent=fmt(d.friend_totals.total_to_pay);}
+  var cats=[{k:'Food',i:'🍔'},{k:'Travel',i:'🚌'},{k:'Fun',i:'🎮'},{k:'Other',i:'📦'}];
+  document.getElementById('dash-cats').innerHTML=cats.map(function(c){return '<div class="cat-chip"><div class="cat-chip-icon">'+c.i+'</div><div><div class="cat-chip-name">'+c.k+'</div><div class="cat-chip-amt">'+fmt(d.categories&&d.categories[c.k]||0)+'</div></div></div>';}).join('');
+  var rc=d.recent_transactions;
+  if(!rc||!rc.length){document.getElementById('dash-recent').innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><p>No transactions yet<br>Tap + to add one</p></div>';return;}
+  document.getElementById('dash-recent').innerHTML=rc.map(function(tx){var cls=tx.type==='income'?'income':tx.category.toLowerCase();return '<div class="tx-row"><div class="tx-row-icon '+cls+'">'+getCatIcon(tx.category,tx.type)+'</div><div class="tx-row-body"><div class="tx-row-desc">'+(tx.description||tx.category)+'</div><div class="tx-row-meta">'+tx.category+' · '+fmtDate(tx.date)+'</div></div><div class="tx-row-amount '+tx.type+'">'+(tx.type==='income'?'+':'-')+fmt(tx.amount)+'</div></div>';}).join('');
+}
+document.getElementById('dash-prev').addEventListener('click',function(){currentMonth=shiftMonth(currentMonth,-1);loadDashboard();});
+document.getElementById('dash-next').addEventListener('click',function(){var n=shiftMonth(currentMonth,1);if(n<=new Date().toISOString().slice(0,7)){currentMonth=n;loadDashboard();}});
+
+// ══════════════════════════════════
+//  FRIENDS
+// ══════════════════════════════════
+async function loadReceive(){var res=await API.friends.receive();if(!res.ok)return;document.getElementById('recv-total').textContent=fmt(res.data.total_to_receive);renderFL('recv-list',res.data.transactions,'receive');}
+async function loadPay(){var res=await API.friends.pay();if(!res.ok)return;document.getElementById('pay-total').textContent=fmt(res.data.total_to_pay);renderFL('pay-list',res.data.transactions,'pay');}
+
+function renderFL(cid,txs,type){
+  var c=document.getElementById(cid);
+  if(!txs||!txs.length){c.innerHTML='<div class="empty-state"><div class="empty-state-icon">'+(type==='receive'?'🤝':'💸')+'</div><p>No entries yet.<br>Tap + Add to create one.</p></div>';return;}
+  var pend=txs.filter(function(t){return t.status==='pending';});
+  var done=txs.filter(function(t){return t.status==='completed';});
+  var html='';
+  if(pend.length) html+='<div class="section-hd-title" style="margin:4px 0 10px">Pending ('+pend.length+')</div>'+pend.map(function(t){return fcCard(t,type);}).join('');
+  if(done.length) html+='<div class="section-hd-title" style="margin:16px 0 10px;color:var(--green)">Completed ('+done.length+')</div>'+done.map(function(t){return fcCard(t,type);}).join('');
+  c.innerHTML=html;
+  c.querySelectorAll('[data-fc-action]').forEach(function(btn){btn.addEventListener('click',function(){fcAction(btn.dataset.fcAction,parseInt(btn.dataset.fcId),type);});});
+}
+
+function fcCard(t,type){
+  var pct=t.total_amount>0?Math.min(100,(t.paid_amount/t.total_amount)*100):0;
+  var done=t.status==='completed';
+  var acts=done
+    ?'<button class="btn btn-muted btn-sm" data-fc-action="delete" data-fc-id="'+t.id+'">🗑 Remove</button>'
+    :(type==='receive'
+      ?'<button class="btn btn-green btn-sm" data-fc-action="payment" data-fc-id="'+t.id+'">+ Received</button><button class="btn btn-primary btn-sm" data-fc-action="complete" data-fc-id="'+t.id+'">✓ Got All</button><button class="btn btn-muted btn-sm" data-fc-action="delete" data-fc-id="'+t.id+'">🗑</button>'
+      :'<button class="btn btn-yellow btn-sm" data-fc-action="payment" data-fc-id="'+t.id+'">+ Paid</button><button class="btn btn-primary btn-sm" data-fc-action="complete" data-fc-id="'+t.id+'">✓ Paid All</button><button class="btn btn-muted btn-sm" data-fc-action="delete" data-fc-id="'+t.id+'">🗑</button>');
+  return '<div class="friend-card"><div class="fc-header"><div class="fc-who"><div class="fc-avatar">'+getInitials(t.friend_name)+'</div><div><div class="fc-name">'+t.friend_name+'</div><div class="fc-date">'+fmtDate(t.date)+'</div>'+(t.description?'<div class="fc-desc">'+t.description+'</div>':'')+'</div></div><span class="fc-status '+t.status+'">'+t.status+'</span></div><div class="fc-amounts"><div class="fc-amt"><div class="fc-amt-label">Total</div><div class="fc-amt-val total">'+fmt(t.total_amount)+'</div></div><div class="fc-amt"><div class="fc-amt-label">'+(type==='receive'?'Received':'Paid')+'</div><div class="fc-amt-val paid">'+fmt(t.paid_amount)+'</div></div><div class="fc-amt"><div class="fc-amt-label">Left</div><div class="fc-amt-val '+(done?'done':'remaining')+'">'+(done?'✓ Done':fmt(t.remaining_amount))+'</div></div></div><div class="fc-progress"><div class="fc-progress-fill" style="width:'+pct+'%"></div></div><div class="fc-actions">'+acts+'</div></div>';
+}
+
+var _pendPayId=null,_pendPayType=null;
+function fcAction(action,id,type){
+  if(action==='complete'){API.friends.markComplete(id).then(function(r){if(r.data.success){toast('Marked complete!','success');if(type==='receive')loadReceive();else loadPay();}else toast(r.data.error||'Error','error');});}
+  else if(action==='payment'){_pendPayId=id;_pendPayType=type;document.getElementById('pay-drawer-title').textContent=type==='receive'?'💰 Record Money Received':'💸 Record Payment Made';document.getElementById('pay-drawer-amt').value='';openDrawer('pay-drawer');setTimeout(function(){document.getElementById('pay-drawer-amt').focus();},300);}
+  else if(action==='delete'){if(!confirm('Delete this entry?'))return;API.friends.delete(id).then(function(){toast('Removed','info');if(type==='receive')loadReceive();else loadPay();});}
+}
+document.getElementById('pay-drawer-confirm').addEventListener('click',async function(){
+  var a=parseFloat(document.getElementById('pay-drawer-amt').value);
+  if(!a||a<=0){toast('Enter valid amount','error');return;}
+  var res=await API.friends.addPayment(_pendPayId,a);
+  if(res.data.success){closeDrawer('pay-drawer');toast(res.data.status==='completed'?'Fully settled! 🎉':fmt(a)+' recorded. Left: '+fmt(res.data.remaining),'success');if(_pendPayType==='receive')loadReceive();else loadPay();}
+  else toast(res.data.error||'Error','error');
+});
+
+var _fdType='pay';
+function openFriendDrawer(type){_fdType=type;document.getElementById('friend-drawer-title').textContent=type==='receive'?'💰 Add: I Will Receive':'💸 Add: I Need to Pay';document.getElementById('fd-name').value='';document.getElementById('fd-amt').value='';document.getElementById('fd-desc').value='';openDrawer('friend-drawer');setTimeout(function(){document.getElementById('fd-name').focus();},300);}
+document.getElementById('fd-confirm').addEventListener('click',async function(){
+  var name=document.getElementById('fd-name').value.trim(),amt=parseFloat(document.getElementById('fd-amt').value),desc=document.getElementById('fd-desc').value.trim();
+  if(!name){toast('Enter friend name','error');return;}if(!amt||amt<=0){toast('Enter valid amount','error');return;}
+  var res=await API.friends.add({friend_name:name,amount:amt,type:_fdType,description:desc});
+  if(res.data.success){closeDrawer('friend-drawer');toast('Added '+fmt(amt)+' for '+name,'success');if(_fdType==='receive')loadReceive();else loadPay();}
+  else toast(res.data.error||'Error','error');
+});
+
+// ══════════════════════════════════
+//  ADD PAGE
+// ══════════════════════════════════
+var _selCat='Food',_ftype='pay';
+document.querySelectorAll('.mode-tab').forEach(function(btn){btn.addEventListener('click',function(){document.querySelectorAll('.mode-tab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');document.querySelectorAll('.add-block').forEach(function(b){b.style.display='none';});document.getElementById('add-'+btn.dataset.mode).style.display='block';});});
+document.querySelectorAll('.cp-btn').forEach(function(btn){btn.addEventListener('click',function(){_selCat=btn.dataset.cat;document.querySelectorAll('.cp-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');});});
+document.querySelectorAll('[data-ftype]').forEach(function(btn){btn.addEventListener('click',function(){_ftype=btn.dataset.ftype;document.querySelectorAll('[data-ftype]').forEach(function(b){b.classList.remove('active','pay','receive');});btn.classList.add('active',btn.dataset.ftype);});});
+document.getElementById('exp-submit').addEventListener('click',async function(){var a=parseFloat(document.getElementById('exp-amt').value),d=document.getElementById('exp-desc').value.trim();if(!a||a<=0){toast('Enter valid amount','error');return;}this.textContent='Adding...';this.disabled=true;var res=await API.transactions.add({type:'expense',amount:a,category:_selCat,description:d||_selCat,date:new Date().toISOString().slice(0,10)});this.textContent='Add Expense';this.disabled=false;if(res.data.success){toast('-'+fmt(a)+' added ✓','success');document.getElementById('exp-amt').value='';document.getElementById('exp-desc').value='';document.getElementById('exp-amt').focus();}else toast(res.data.error||'Error','error');});
+document.getElementById('inc-submit').addEventListener('click',async function(){var a=parseFloat(document.getElementById('inc-amt').value),d=document.getElementById('inc-desc').value.trim();if(!a||a<=0){toast('Enter valid amount','error');return;}this.textContent='Adding...';this.disabled=true;var res=await API.transactions.add({type:'income',amount:a,category:'Income',description:d||'Income received',date:new Date().toISOString().slice(0,10)});this.textContent='Add Income';this.disabled=false;if(res.data.success){toast('+'+fmt(a)+' received ✓','success');document.getElementById('inc-amt').value='';document.getElementById('inc-desc').value='';}else toast(res.data.error||'Error','error');});
+document.getElementById('fr-submit').addEventListener('click',async function(){var name=document.getElementById('fr-name').value.trim(),a=parseFloat(document.getElementById('fr-amt').value),d=document.getElementById('fr-desc').value.trim();if(!name){toast('Enter friend name','error');return;}if(!a||a<=0){toast('Enter valid amount','error');return;}this.textContent='Adding...';this.disabled=true;var res=await API.friends.add({friend_name:name,amount:a,type:_ftype,description:d,date:new Date().toISOString().slice(0,10)});this.textContent='Add Entry';this.disabled=false;if(res.data.success){toast((_ftype==='pay'?'You owe':'You get')+' '+fmt(a)+' from '+name,'success');document.getElementById('fr-name').value='';document.getElementById('fr-amt').value='';document.getElementById('fr-desc').value='';}else toast(res.data.error||'Error','error');});
+document.getElementById('exp-amt').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('exp-desc').focus();});
+document.getElementById('exp-desc').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('exp-submit').click();});
+document.getElementById('inc-amt').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('inc-submit').click();});
+
+// ══════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════
+var histMonth=new Date().toISOString().slice(0,7);
+async function loadHistory(){
+  document.getElementById('hist-month-lbl').textContent=monthLabel(histMonth);
+  document.getElementById('hist-sub').textContent=monthLabel(histMonth);
+  var res=await API.transactions.list(histMonth),c=document.getElementById('hist-list');
+  if(!res.ok||!res.data.length){c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><p>No transactions this month</p></div>';return;}
+  c.innerHTML=res.data.map(function(tx){var cls=tx.type==='income'?'income':tx.category.toLowerCase();return '<div class="tx-row"><div class="tx-row-icon '+cls+'">'+getCatIcon(tx.category,tx.type)+'</div><div class="tx-row-body"><div class="tx-row-desc">'+(tx.description||tx.category)+'</div><div class="tx-row-meta">'+tx.category+' · '+fmtDate(tx.date)+'</div></div><div style="display:flex;align-items:center;gap:6px"><div class="tx-row-amount '+tx.type+'">'+(tx.type==='income'?'+':'-')+fmt(tx.amount)+'</div><button class="tx-row-del" onclick="delTx('+tx.id+')">✕</button></div></div>';}).join('');
+}
+window.delTx=async function(id){if(!confirm('Delete this transaction?'))return;await API.transactions.delete(id);toast('Deleted','info');loadHistory();loadDashboard();};
+document.getElementById('hist-prev').addEventListener('click',function(){histMonth=shiftMonth(histMonth,-1);loadHistory();});
+document.getElementById('hist-next').addEventListener('click',function(){var n=shiftMonth(histMonth,1);if(n<=new Date().toISOString().slice(0,7)){histMonth=n;loadHistory();}});
+
+// ══════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════
+async function loadSettings(){
+  var res=await API.backup.list(),c=document.getElementById('backup-list');
+  if(!res.ok||!res.data.length){c.innerHTML='<p class="text-muted">No backups yet.</p>';return;}
+  c.innerHTML=res.data.map(function(b){return '<div class="backup-file-row"><div class="backup-file-icon">💾</div><div><div class="backup-file-name">'+b.filename+'</div><div class="backup-file-meta">'+b.created+' · '+b.size_kb+' KB</div></div></div>';}).join('');
+}
+document.getElementById('backup-btn').addEventListener('click',async function(){this.textContent='Creating...';this.disabled=true;var res=await API.backup.create();this.textContent='💾 Create Backup Now';this.disabled=false;if(res.data.success){toast('Backup saved: '+res.data.filename,'success');loadSettings();}else toast(res.data.error||'Backup failed','error');});
+document.getElementById('cp-confirm').addEventListener('click',async function(){var op=document.getElementById('cp-old').value,np=document.getElementById('cp-new').value;if(!op||!np||np.length<4){toast('Fill all fields (min 4 chars)','error');return;}var res=await API.auth.changePassword(op,np);if(res.data.success){toast('Password changed ✓','success');closeDrawer('chpass-drawer');document.getElementById('cp-old').value='';document.getElementById('cp-new').value='';}else toast(res.data.error||'Error','error');});
+document.getElementById('logout-btn').addEventListener('click',async function(){await API.auth.logout();location.reload();});
+
+// ══════════════════════════════════
+//  NAV
+// ══════════════════════════════════
+document.querySelectorAll('.nav-btn[data-page]').forEach(function(btn){btn.addEventListener('click',function(){navigateTo(btn.dataset.page);});});
+document.getElementById('fab-add').addEventListener('click',function(){navigateTo('add');});
+
+// ══════════════════════════════════
+//  BOOT
+// ══════════════════════════════════
+initAuth();
+</script>
+</body>
+</html>

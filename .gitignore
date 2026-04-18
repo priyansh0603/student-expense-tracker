@@ -1,0 +1,14 @@
+# Local-only notes — do not push (user request)
+local-worklog/
+
+# Python / env
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.env
+*.egg-info/
+.eggs/
+dist/
+build/

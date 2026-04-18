@@ -2,9 +2,12 @@
 """
 run.py - Start the Student Expense Tracker
 Usage: python run.py
+
+Production / cloud: bind 0.0.0.0 so the app accepts external connections (e.g. Render).
+Set DEBUG=False in the environment for production. Render sets PORT; default is 5000.
 """
-import sys
 import os
+import sys
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.dirname(__file__))
@@ -17,7 +20,6 @@ for d in ['backend', 'backend/models', 'backend/routes', 'backend/services', 'co
 
 from backend.app import app, init_db, check_and_auto_backup
 from config.config import Config
-import os
 
 if __name__ == '__main__':
     os.makedirs(Config.BACKUP_DIR, exist_ok=True)
@@ -39,9 +41,13 @@ if __name__ == '__main__':
     if result and result.get('success'):
         print(f"💾 Auto-backup created: {result['filename']}")
 
+    port = int(os.getenv("PORT", "5000"))
+    debug = Config.DEBUG
+
     print("─" * 40)
-    print("🌐 Open http://localhost:5000 in your browser")
+    print(f"🌐 Listening on http://0.0.0.0:{port}  (debug={debug})")
+    print("   Local browser: http://127.0.0.1:{}".format(port))
     print("   Press Ctrl+C to stop")
     print("─" * 40)
 
-    app.run(debug=Config.DEBUG, host='127.0.0.1', port=5000)
+    app.run(host="0.0.0.0", port=port, debug=debug)

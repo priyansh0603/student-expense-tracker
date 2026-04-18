@@ -60,15 +60,29 @@ def add_payment(user_id: int, transaction_id: int, payment_amount: float) -> dic
 def mark_completed(user_id: int, transaction_id: int) -> dict:
     """Mark a transaction as fully paid/received."""
     row = execute_query(
-        "SELECT total_amount FROM friend_transactions WHERE user_id = %s AND id = %s",
+        "SELECT total_amount, type, status FROM friend_transactions WHERE user_id = %s AND id = %s",
         (user_id, transaction_id), fetch='one'
     )
     if not row:
         return {"success": False, "error": "Not found"}
+    
+    if row['status'] == 'completed':
+        return {"success": False, "error": "Already completed"}
+    
+    # Update the transaction status
     execute_query(
         "UPDATE friend_transactions SET paid_amount = total_amount, status = 'completed' WHERE user_id = %s AND id = %s",
         (user_id, transaction_id)
     )
+    
+    # If this is a "receive" transaction, automatically add income to balance
+    if row['type'] == 'receive':
+        execute_query(
+            """INSERT INTO transactions (type, amount, category, description, date, month, user_id)
+               VALUES ('income', %s, 'Income', 'Received from friend', CURRENT_DATE, TO_CHAR(CURRENT_DATE, 'YYYY-MM'), %s)""",
+            (float(row['total_amount']), user_id)
+        )
+    
     return {"success": True}
 
 def get_friend_transactions(user_id: int, type_: str, month: str = None) -> list:

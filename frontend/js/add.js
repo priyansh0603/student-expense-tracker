@@ -1,7 +1,7 @@
 // frontend/js/add.js — quick add (expense / income / friend) (recovered; mirrors index.html inline script)
 
 var _selCat = 'Food',
-  _ftype = 'pay';
+  _ftype = 'receive';
 
 document.querySelectorAll('.mode-tab').forEach(function (btn) {
   btn.addEventListener('click', function () {

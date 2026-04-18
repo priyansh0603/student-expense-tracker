@@ -177,7 +177,7 @@ function openFriendDrawer(type) {
 }
 
 document.getElementById('fd-confirm').addEventListener('click', async function () {
-  var name = document.getElementById('fd-name').value.trim(),
+  var name = document.getElementById('fd-name').value.trim().toLowerCase(),
     amt = parseFloat(document.getElementById('fd-amt').value),
     desc = document.getElementById('fd-desc').value.trim();
   if (!name) {
@@ -189,8 +189,9 @@ document.getElementById('fd-confirm').addEventListener('click', async function (
     return;
   }
   
+  console.log("Normalized Name:", name);
   console.log("Sending Friend Data:", {
-    name,
+    friend_name: name,
     amount: amt,
     type: _fdType
   });

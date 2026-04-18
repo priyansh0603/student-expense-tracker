@@ -55,7 +55,7 @@ def create_friend_transaction():
 
     print("Name:", name)
     print("Amount:", amount)
-    print("Type:", type)
+    print("Incoming type:", data.get("type"))
 
     user_id = session.get("user_id")
     print("User ID:", user_id)
@@ -64,8 +64,12 @@ def create_friend_transaction():
         return jsonify({"success": False, "error": "Friend name required"}), 400
     if not data.get('amount') or float(data['amount']) <= 0:
         return jsonify({"success": False, "error": "Invalid amount"}), 400
-    if data.get('type') not in ['pay', 'receive']:
-        return jsonify({"success": False, "error": "Type must be pay or receive"}), 400
+    
+    type = data.get("type")
+    if type not in ["pay", "receive"]:
+        return jsonify({"error": "Invalid type"}), 400
+    
+    print("FINAL TYPE:", type)
 
     if not user_id:
         return jsonify({"success": False, "error": "User not authenticated"}), 401
@@ -75,7 +79,7 @@ def create_friend_transaction():
             user_id=user_id,
             friend_name=data['friend_name'].strip(),
             amount=float(data['amount']),
-            type_=data['type'],
+            type_=type,
             description=data.get('description', ''),
             trans_date=data.get('date')
         )

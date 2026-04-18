@@ -7,13 +7,13 @@ def get_current_month() -> str:
 
 def get_or_create_friend(user_id: int, name: str) -> int:
     """Get existing friend by name (case-insensitive) or create new."""
-    # Step 1: Normalize name
-    name = name.strip()
+    # Step 1: Normalize name to lowercase
+    name = name.strip().lower()
     print(f"DEBUG get_or_create_friend - Checking for friend: '{name}' (user_id: {user_id})")
     
     # Step 2: Check if friend exists (case-insensitive)
     row = execute_query(
-        "SELECT id FROM friends WHERE user_id = %s AND LOWER(name) = LOWER(%s)",
+        "SELECT id FROM friends WHERE user_id = %s AND LOWER(name) = %s",
         (user_id, name), fetch='one'
     )
     

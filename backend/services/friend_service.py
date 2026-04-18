@@ -7,18 +7,30 @@ def get_current_month() -> str:
 
 def get_or_create_friend(user_id: int, name: str) -> int:
     """Get existing friend by name (case-insensitive) or create new."""
+    # Step 1: Normalize name
     name = name.strip()
+    print(f"DEBUG get_or_create_friend - Checking for friend: '{name}' (user_id: {user_id})")
+    
+    # Step 2: Check if friend exists (case-insensitive)
     row = execute_query(
         "SELECT id FROM friends WHERE user_id = %s AND LOWER(name) = LOWER(%s)",
         (user_id, name), fetch='one'
     )
+    
     if row:
-        return row['id']
+        friend_id = row['id']
+        print(f"DEBUG Friend exists with id: {friend_id}")
+        return friend_id
+    
+    # Step 3: Friend doesn't exist - insert new friend
+    print(f"DEBUG Friend '{name}' not found - creating new friend")
     new_row = execute_query(
         "INSERT INTO friends (name, user_id) VALUES (%s, %s) RETURNING id",
         (name, user_id), fetch='one'
     )
-    return new_row['id']
+    friend_id = new_row['id']
+    print(f"DEBUG New friend created with id: {friend_id}")
+    return friend_id
 
 def add_friend_transaction(user_id: int, friend_name: str, amount: float, type_: str, description: str = None, trans_date: str = None) -> dict:
     """Add a new friend money entry."""

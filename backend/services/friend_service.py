@@ -22,18 +22,32 @@ def get_or_create_friend(user_id: int, name: str) -> int:
 
 def add_friend_transaction(user_id: int, friend_name: str, amount: float, type_: str, description: str = None, trans_date: str = None) -> dict:
     """Add a new friend money entry."""
+    # Validate user_id is not None
+    if user_id is None:
+        print("ERROR: user_id is None")
+        return {"success": False, "error": "User not authenticated"}
+    
+    print(f"DEBUG add_friend_transaction - user_id: {user_id}, friend_name: {friend_name}, amount: {amount}, type: {type_}")
+    
     friend_id = get_or_create_friend(user_id, friend_name)
+    print(f"DEBUG friend_id: {friend_id}")
+    
     if trans_date:
         d = datetime.strptime(trans_date, "%Y-%m-%d").date()
     else:
         d = date.today()
     month = d.strftime("%Y-%m")
+    
+    print(f"DEBUG INSERT values - friend_id: {friend_id}, total_amount: {amount}, type: {type_}, description: {description}, date: {d}, month: {month}, user_id: {user_id}")
+    
     row = execute_query(
         """INSERT INTO friend_transactions (friend_id, total_amount, paid_amount, type, description, date, month, user_id)
            VALUES (%s, %s, 0, %s, %s, %s, %s, %s) RETURNING id""",
         (friend_id, amount, type_, description, d, month, user_id),
         fetch='one'
     )
+    
+    print(f"DEBUG Transaction inserted with id: {row['id']}")
     return {"success": True, "id": row['id']}
 
 def add_payment(user_id: int, transaction_id: int, payment_amount: float) -> dict:

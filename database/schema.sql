@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     description TEXT,
     date        DATE         NOT NULL DEFAULT CURRENT_DATE,
     month       VARCHAR(7)   NOT NULL,   -- Format: YYYY-MM
+    user_id     INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at  TIMESTAMP    DEFAULT NOW()
 );
 
@@ -33,8 +34,10 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- Unique friend names — no duplicates allowed
 CREATE TABLE IF NOT EXISTS friends (
     id         SERIAL PRIMARY KEY,
-    name       VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP    DEFAULT NOW()
+    name       VARCHAR(100) NOT NULL,
+    user_id    INTEGER      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP    DEFAULT NOW(),
+    UNIQUE(user_id, name)
 );
 
 -- TABLE 4: friend_transactions
@@ -51,13 +54,22 @@ CREATE TABLE IF NOT EXISTS friend_transactions (
     description      TEXT,
     date             DATE          NOT NULL DEFAULT CURRENT_DATE,
     month            VARCHAR(7)    NOT NULL,
+    user_id          INTEGER       NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at       TIMESTAMP     DEFAULT NOW()
 );
 
 -- INDEXES (for faster queries)
 CREATE INDEX IF NOT EXISTS idx_tx_month       ON transactions(month);
 CREATE INDEX IF NOT EXISTS idx_tx_type        ON transactions(type);
+CREATE INDEX IF NOT EXISTS idx_tx_user_id     ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_ft_friend_id   ON friend_transactions(friend_id);
 CREATE INDEX IF NOT EXISTS idx_ft_month       ON friend_transactions(month);
 CREATE INDEX IF NOT EXISTS idx_ft_status      ON friend_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_ft_user_id     ON friend_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- MIGRATIONS: Add user_id columns for multi-user support
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE friend_transactions ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE friends ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE;

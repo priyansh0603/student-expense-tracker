@@ -17,15 +17,17 @@ def require_auth():
 def list_friends():
     auth = require_auth()
     if auth: return auth
-    return jsonify(get_all_friends())
+    user_id = session.get('user_id')
+    return jsonify(get_all_friends(user_id))
 
 @friend_bp.route('/receive', methods=['GET'])
 def get_receive():
     auth = require_auth()
     if auth: return auth
     month = request.args.get('month')
-    data = get_friend_transactions('receive', month)
-    totals = get_friend_totals(month)
+    user_id = session.get('user_id')
+    data = get_friend_transactions(user_id, 'receive', month)
+    totals = get_friend_totals(user_id, month)
     return jsonify({"transactions": data, "total_to_receive": totals['total_to_receive']})
 
 @friend_bp.route('/pay', methods=['GET'])
@@ -33,8 +35,9 @@ def get_pay():
     auth = require_auth()
     if auth: return auth
     month = request.args.get('month')
-    data = get_friend_transactions('pay', month)
-    totals = get_friend_totals(month)
+    user_id = session.get('user_id')
+    data = get_friend_transactions(user_id, 'pay', month)
+    totals = get_friend_totals(user_id, month)
     return jsonify({"transactions": data, "total_to_pay": totals['total_to_pay']})
 
 @friend_bp.route('/', methods=['POST'])
@@ -50,7 +53,9 @@ def create_friend_transaction():
     if data.get('type') not in ['pay', 'receive']:
         return jsonify({"success": False, "error": "Type must be pay or receive"}), 400
 
+    user_id = session.get('user_id')
     result = add_friend_transaction(
+        user_id=user_id,
         friend_name=data['friend_name'].strip(),
         amount=float(data['amount']),
         type_=data['type'],
@@ -67,13 +72,15 @@ def add_payment_route(transaction_id):
     amount = float(data.get('amount', 0))
     if amount <= 0:
         return jsonify({"success": False, "error": "Invalid payment amount"}), 400
-    return jsonify(add_payment(transaction_id, amount))
+    user_id = session.get('user_id')
+    return jsonify(add_payment(user_id, transaction_id, amount))
 
 @friend_bp.route('/<int:transaction_id>/complete', methods=['POST'])
 def complete_transaction(transaction_id):
     auth = require_auth()
     if auth: return auth
-    return jsonify(mark_completed(transaction_id))
+    user_id = session.get('user_id')
+    return jsonify(mark_completed(user_id, transaction_id))
 
 @friend_bp.route('/<int:transaction_id>', methods=['PUT'])
 def update_transaction(transaction_id):
@@ -81,10 +88,12 @@ def update_transaction(transaction_id):
     if auth: return auth
     data = request.get_json()
     total = float(data['total_amount']) if 'total_amount' in data else None
-    return jsonify(update_friend_transaction(transaction_id, total, data.get('description')))
+    user_id = session.get('user_id')
+    return jsonify(update_friend_transaction(user_id, transaction_id, total, data.get('description')))
 
 @friend_bp.route('/<int:transaction_id>', methods=['DELETE'])
 def remove_transaction(transaction_id):
     auth = require_auth()
     if auth: return auth
-    return jsonify(delete_friend_transaction(transaction_id))
+    user_id = session.get('user_id')
+    return jsonify(delete_friend_transaction(user_id, transaction_id))

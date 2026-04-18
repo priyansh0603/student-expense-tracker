@@ -5,42 +5,42 @@ from backend.models.db import execute_query
 def get_current_month() -> str:
     return datetime.now().strftime("%Y-%m")
 
-def get_or_create_friend(name: str) -> int:
+def get_or_create_friend(user_id: int, name: str) -> int:
     """Get existing friend by name (case-insensitive) or create new."""
     name = name.strip()
     row = execute_query(
-        "SELECT id FROM friends WHERE LOWER(name) = LOWER(%s)",
-        (name,), fetch='one'
+        "SELECT id FROM friends WHERE user_id = %s AND LOWER(name) = LOWER(%s)",
+        (user_id, name), fetch='one'
     )
     if row:
         return row['id']
     new_row = execute_query(
-        "INSERT INTO friends (name) VALUES (%s) RETURNING id",
-        (name,), fetch='one'
+        "INSERT INTO friends (name, user_id) VALUES (%s, %s) RETURNING id",
+        (name, user_id), fetch='one'
     )
     return new_row['id']
 
-def add_friend_transaction(friend_name: str, amount: float, type_: str, description: str = None, trans_date: str = None) -> dict:
+def add_friend_transaction(user_id: int, friend_name: str, amount: float, type_: str, description: str = None, trans_date: str = None) -> dict:
     """Add a new friend money entry."""
-    friend_id = get_or_create_friend(friend_name)
+    friend_id = get_or_create_friend(user_id, friend_name)
     if trans_date:
         d = datetime.strptime(trans_date, "%Y-%m-%d").date()
     else:
         d = date.today()
     month = d.strftime("%Y-%m")
     row = execute_query(
-        """INSERT INTO friend_transactions (friend_id, total_amount, paid_amount, type, description, date, month)
-           VALUES (%s, %s, 0, %s, %s, %s, %s) RETURNING id""",
-        (friend_id, amount, type_, description, d, month),
+        """INSERT INTO friend_transactions (friend_id, total_amount, paid_amount, type, description, date, month, user_id)
+           VALUES (%s, %s, 0, %s, %s, %s, %s, %s) RETURNING id""",
+        (friend_id, amount, type_, description, d, month, user_id),
         fetch='one'
     )
     return {"success": True, "id": row['id']}
 
-def add_payment(transaction_id: int, payment_amount: float) -> dict:
+def add_payment(user_id: int, transaction_id: int, payment_amount: float) -> dict:
     """Add a partial or full payment to a friend transaction."""
     row = execute_query(
-        "SELECT * FROM friend_transactions WHERE id = %s",
-        (transaction_id,), fetch='one'
+        "SELECT * FROM friend_transactions WHERE user_id = %s AND id = %s",
+        (user_id, transaction_id), fetch='one'
     )
     if not row:
         return {"success": False, "error": "Transaction not found"}
@@ -52,34 +52,34 @@ def add_payment(transaction_id: int, payment_amount: float) -> dict:
 
     new_status = 'completed' if new_paid >= total else 'pending'
     execute_query(
-        "UPDATE friend_transactions SET paid_amount = %s, status = %s WHERE id = %s",
-        (new_paid, new_status, transaction_id)
+        "UPDATE friend_transactions SET paid_amount = %s, status = %s WHERE user_id = %s AND id = %s",
+        (new_paid, new_status, user_id, transaction_id)
     )
     return {"success": True, "status": new_status, "remaining": round(total - new_paid, 2)}
 
-def mark_completed(transaction_id: int) -> dict:
+def mark_completed(user_id: int, transaction_id: int) -> dict:
     """Mark a transaction as fully paid/received."""
     row = execute_query(
-        "SELECT total_amount FROM friend_transactions WHERE id = %s",
-        (transaction_id,), fetch='one'
+        "SELECT total_amount FROM friend_transactions WHERE user_id = %s AND id = %s",
+        (user_id, transaction_id), fetch='one'
     )
     if not row:
         return {"success": False, "error": "Not found"}
     execute_query(
-        "UPDATE friend_transactions SET paid_amount = total_amount, status = 'completed' WHERE id = %s",
-        (transaction_id,)
+        "UPDATE friend_transactions SET paid_amount = total_amount, status = 'completed' WHERE user_id = %s AND id = %s",
+        (user_id, transaction_id)
     )
     return {"success": True}
 
-def get_friend_transactions(type_: str, month: str = None) -> list:
+def get_friend_transactions(user_id: int, type_: str, month: str = None) -> list:
     """Get all friend transactions of a given type."""
     query = """
         SELECT ft.*, f.name as friend_name
         FROM friend_transactions ft
         JOIN friends f ON ft.friend_id = f.id
-        WHERE ft.type = %s
+        WHERE ft.user_id = %s AND ft.type = %s
     """
-    params = [type_]
+    params = [user_id, type_]
     if month:
         query += " AND ft.month = %s"
         params.append(month)
@@ -87,11 +87,11 @@ def get_friend_transactions(type_: str, month: str = None) -> list:
     rows = execute_query(query, params, fetch='all')
     return [dict(r) for r in rows] if rows else []
 
-def get_friend_totals(month: str = None) -> dict:
+def get_friend_totals(user_id: int, month: str = None) -> dict:
     """Get total amounts owed and to receive."""
-    base = "SELECT COALESCE(SUM(remaining_amount), 0) as total FROM friend_transactions WHERE type = %s AND status = 'pending'"
-    params_pay = ['pay']
-    params_recv = ['receive']
+    base = "SELECT COALESCE(SUM(remaining_amount), 0) as total FROM friend_transactions WHERE user_id = %s AND type = %s AND status = 'pending'"
+    params_pay = [user_id, 'pay']
+    params_recv = [user_id, 'receive']
     if month:
         base += " AND month = %s"
         params_pay.append(month)
@@ -105,9 +105,9 @@ def get_friend_totals(month: str = None) -> dict:
         "total_to_receive": float(recv_row['total'])
     }
 
-def update_friend_transaction(transaction_id: int, total_amount: float = None, description: str = None) -> dict:
+def update_friend_transaction(user_id: int, transaction_id: int, total_amount: float = None, description: str = None) -> dict:
     """Update a friend transaction."""
-    row = execute_query("SELECT * FROM friend_transactions WHERE id = %s", (transaction_id,), fetch='one')
+    row = execute_query("SELECT * FROM friend_transactions WHERE user_id = %s AND id = %s", (user_id, transaction_id), fetch='one')
     if not row:
         return {"success": False, "error": "Not found"}
 
@@ -117,15 +117,15 @@ def update_friend_transaction(transaction_id: int, total_amount: float = None, d
     new_status = 'completed' if paid >= new_total else 'pending'
 
     execute_query(
-        "UPDATE friend_transactions SET total_amount = %s, description = %s, status = %s WHERE id = %s",
-        (new_total, new_desc, new_status, transaction_id)
+        "UPDATE friend_transactions SET total_amount = %s, description = %s, status = %s WHERE user_id = %s AND id = %s",
+        (new_total, new_desc, new_status, user_id, transaction_id)
     )
     return {"success": True}
 
-def delete_friend_transaction(transaction_id: int) -> dict:
-    execute_query("DELETE FROM friend_transactions WHERE id = %s", (transaction_id,))
+def delete_friend_transaction(user_id: int, transaction_id: int) -> dict:
+    execute_query("DELETE FROM friend_transactions WHERE user_id = %s AND id = %s", (user_id, transaction_id))
     return {"success": True}
 
-def get_all_friends() -> list:
-    rows = execute_query("SELECT * FROM friends ORDER BY name", fetch='all')
+def get_all_friends(user_id: int) -> list:
+    rows = execute_query("SELECT * FROM friends WHERE user_id = %s ORDER BY name", (user_id,), fetch='all')
     return [dict(r) for r in rows] if rows else []

@@ -29,12 +29,12 @@ def register(username: str, password: str, security_question: str, security_answ
         hashed_pass = hash_password(password)
         hashed_ans  = hash_password(security_answer)
         print("[register] Running insert query")
-        execute_query(
-            "INSERT INTO users (username, password_hash, security_question, security_answer_hash) VALUES (%s, %s, %s, %s)",
-            (username, hashed_pass, security_question.strip(), hashed_ans)
+        row = execute_query(
+            "INSERT INTO users (username, password_hash, security_question, security_answer_hash) VALUES (%s, %s, %s, %s) RETURNING id",
+            (username, hashed_pass, security_question.strip(), hashed_ans), fetch='one'
         )
         print("[register] User inserted successfully")
-        return {"success": True}
+        return {"success": True, "user_id": row['id']}
     except psycopg.errors.UniqueViolation as e:
         print(f"[register] Duplicate username detected: {e}")
         return {"success": False, "error": "User already exists"}
@@ -50,7 +50,7 @@ def login(username: str, password: str) -> dict:
         (username, hashed), fetch='one'
     )
     if row:
-        return {"success": True, "username": row['username']}
+        return {"success": True, "username": row['username'], "user_id": row['id']}
     return {"success": False, "error": "Incorrect username or password"}
 
 def get_security_question(username: str) -> dict:

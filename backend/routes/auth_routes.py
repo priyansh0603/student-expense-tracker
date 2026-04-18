@@ -12,7 +12,8 @@ def status():
     return jsonify({
         "first_launch": is_first_launch(),
         "authenticated": session.get('authenticated', False),
-        "username": session.get('username', '')
+        "username": session.get('username', ''),
+        "user_id": session.get('user_id', None)
     })
 
 @auth_bp.route('/register', methods=['POST'])
@@ -27,6 +28,7 @@ def do_register():
     if result['success']:
         session['authenticated'] = True
         session['username'] = d.get('username', '').strip().lower()
+        session['user_id'] = result['user_id']
     return jsonify(result), 201 if result['success'] else 400
 
 @auth_bp.route('/login', methods=['POST'])
@@ -36,6 +38,7 @@ def do_login():
     if result['success']:
         session['authenticated'] = True
         session['username'] = result['username']
+        session['user_id'] = result['user_id']
     return jsonify(result), 200 if result['success'] else 401
 
 @auth_bp.route('/logout', methods=['POST'])

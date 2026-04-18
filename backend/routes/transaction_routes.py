@@ -16,7 +16,8 @@ def dashboard():
     auth = require_auth()
     if auth: return auth
     month = request.args.get('month')
-    return jsonify(get_dashboard_data(month))
+    user_id = session.get('user_id')
+    return jsonify(get_dashboard_data(user_id, month))
 
 @tx_bp.route('/', methods=['GET'])
 def list_transactions():
@@ -24,7 +25,8 @@ def list_transactions():
     if auth: return auth
     month = request.args.get('month')
     limit = request.args.get('limit', type=int)
-    return jsonify(get_transactions(month, limit))
+    user_id = session.get('user_id')
+    return jsonify(get_transactions(user_id, month, limit))
 
 @tx_bp.route('/', methods=['POST'])
 def create_transaction():
@@ -38,11 +40,13 @@ def create_transaction():
     if data.get('type') not in ['income', 'expense']:
         return jsonify({"success": False, "error": "Type must be income or expense"}), 400
 
+    user_id = session.get('user_id')
     result = add_transaction(
         type_=data['type'],
         amount=float(data['amount']),
         category=data.get('category', 'Other'),
         description=data.get('description', ''),
+        user_id=user_id,
         trans_date=data.get('date')
     )
     return jsonify(result), 201
@@ -51,4 +55,5 @@ def create_transaction():
 def remove_transaction(transaction_id):
     auth = require_auth()
     if auth: return auth
-    return jsonify(delete_transaction(transaction_id))
+    user_id = session.get('user_id')
+    return jsonify(delete_transaction(user_id, transaction_id))
